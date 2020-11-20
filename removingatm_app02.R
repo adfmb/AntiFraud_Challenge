@@ -1,6 +1,7 @@
 library(shiny)
 library(leaflet)
 source("utils/creando_mapas.R")
+source("utils/seleccionar_vars.R")
 
 # r_colors <- rgb(t(col2rgb(colors()) / 255))
 # names(r_colors) <- colors()
@@ -12,6 +13,7 @@ source("utils/creando_mapas.R")
 # )
 
 camposllave<-c( "atm","Division","Giro","Estado","Ciudad","CP","Del.Muni","Colonia","Latitud","Longitud","cvemun")
+vars_excluir<-NULL
 ui <- fluidPage(
   
   titlePanel("Mapas"),
@@ -25,12 +27,12 @@ ui <- fluidPage(
       fileInput("file", label = h3("Cargar base ATM's")),
       
       # Copy the line below to make a slider bar 
-
-        # # create some select inputs
-        # lapply(1:5, function(i) {
-        #   selectInput(paste0('a', i), paste0('SelectA', i),
-        #               choices = sample(LETTERS, 5))
-        # })
+      
+      # # create some select inputs
+      # lapply(1:5, function(i) {
+      #   selectInput(paste0('a', i), paste0('SelectA', i),
+      #               choices = sample(LETTERS, 5))
+      # })
       
       
       uiOutput('my_inputs')
@@ -55,13 +57,13 @@ server <- function(input, output, session) {
   })
   
   camposvariables<- eventReactive(input$file, {
-    names(reac_df())[!names(reac_df())%in%camposllave]
+    seleccionar_vars(reac_df(),camposllave = camposllave,vars_excluir = vars_excluir)
   })
   
   mapas <- eventReactive(input$file, {
     creando_mapas(reac_df())
   })
-
+  
   
   output$my_inputs <- renderUI({
     lapply(camposvariables(), function(x){
@@ -73,12 +75,12 @@ server <- function(input, output, session) {
   
   output$leafl_distancia_cajeros <- renderLeaflet({
     mapas()$leafl_distancia_cajeros
-
+    
   })
-
+  
   output$leafl_wcolor_labls <- renderLeaflet({
     mapas()$leafl_wcolor_labls
-
+    
   })
 }
 
