@@ -1,0 +1,52 @@
+---
+title: "Importación"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+
+```{r}
+bd<-read.table("data/ATMs_Remotos_112020.tsv",sep="\t",header = T)
+bd
+```
+
+```{r}
+camposllave<-c("atm","Division","Giro","Estado","Ciudad","CP","Del.Muni","Colonia","Latitud","Longitud","cvemun")
+camposvariables<-names(bd)[!names(bd)%in%camposllave]
+bd02<-bd%>%
+  mutate_at(vars(camposvariables),function(x){x<-gsub(",",".",x);return(as.numeric(x))})%>%
+  as_data_frame()
+
+saveRDS(bd02,"data/bd02.rds")
+bd02
+```
+
+
+```{r}
+bd02%>%
+  group_by(Giro)%>%
+  summarise(n=n())
+```
+
+
+```{r}
+bd03<-bd02%>%
+  mutate(
+    Giro=gsub(" = ","",gsub('[[:digit:]]+', '', Giro)),
+    giro00=paste0("Giro_",gsub(" ","_",Giro)),
+    I_giro00=1
+  )%>%
+  spread(giro00,I_giro00,fill = 0)
+
+saveRDS(bd03,"data/bd03.rds")
+bd03
+```
+
