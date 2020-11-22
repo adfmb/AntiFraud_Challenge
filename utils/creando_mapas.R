@@ -68,3 +68,5 @@ creando_mapas<-function(df){
   
   
 }
+
+# mapas<-creando_mapas(df = df)

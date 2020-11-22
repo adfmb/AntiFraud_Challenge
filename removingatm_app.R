@@ -5,7 +5,10 @@ library(DT)
 source("utils/creando_mapas.R")
 source("utils/seleccionar_vars.R")
 source("utils/def_aporte_var.R")
-catalogo_direccion_vars<-readRDS("data/catalogo_vars_positivas.rds")
+source("utils/df_calif_atms.R")
+source("utils/proceso_atms.R")
+par(mar=c(1,1,1,1))
+catalogo_direccion_vars<-readRDS("datasource/catalogo_vars_positivas.rds")
 
 camposllave<-c( "atm","Division","Giro","Estado","Ciudad","CP","Del.Muni","Colonia","Latitud","Longitud","cvemun")
 vars_excluir<-NULL
@@ -20,8 +23,14 @@ sidebar <- dashboardSidebar(
     p(),
     p(),
     p(),
-    menuItem("Aporte & Calificación", icon = icon("th"), tabName = "df_aporte_vars"#,badgeLabel = "new", badgeColor = "green"
+    menuItem("Aporte & Calificación", icon = icon("th"), tabName = "aporte_y_calif_atms"#,badgeLabel = "new", badgeColor = "green"
     ),
+    numericInput('clusters', 'Número de clústers', 3, min = 1, max = 9),
+    p(),
+    menuItem("Grupos de ATM's", icon = icon("th"), tabName = "df_clusters_atms"),
+    # actionButton("clustering_atms", " ATM's"),
+    
+    
     menuItem("Con Cluster por Distancias", icon = icon("th"), tabName = "leafl_distancia_cajeros"#,badgeLabel = "new", badgeColor = "green"
     ),
     menuItem("Con marcas de colores", icon = icon("th"), tabName = "leafl_wcolor_labls"#, badgeLabel = "new", badgeColor = "green"
@@ -50,9 +59,17 @@ body <- dashboardBody(
             # uiOutput('my_inputs')
     ),
     
-    tabItem(tabName = "df_aporte_vars",
+    tabItem(tabName = "aporte_y_calif_atms",
             h2("Aporte por variable"),
-            DTOutput('df_aporte_vars')
+            DTOutput('df_aporte_vars'),
+            p(),
+            h2("Calificación de ATM's"),
+            DTOutput('df_calif_atms')
+    ),
+    
+    tabItem(tabName = "df_clusters_atms",
+            h2("Semáforo de ATM's"),
+            DTOutput('df_clusters_atms')
     ),
     
     tabItem(tabName = "leafl_distancia_cajeros",
@@ -85,17 +102,38 @@ server <- function(input, output, session) {
   })
   
   
-  df_campos <- eventReactive(input$calificar_atms, {
-    def_aporte_var(camposvariables(),input,catalogo_direccion_vars=catalogo_direccion_vars)
+  atms <- eventReactive(input$calificar_atms, {
+    proceso_atms(reac_df(),camposllave,camposvariables(),input=input,catalogo_direccion_vars=catalogo_direccion_vars)
   })
+  
+  # df_campos <- eventReactive(input$calificar_atms, {
+  #   def_aporte_var(camposvariables(),input,catalogo_direccion_vars=catalogo_direccion_vars)
+  # })
+  
+  # clusters <- reactive({
+  #   kmeans(selectedData(), input$clusters)
+  # })
   
   mapas <- eventReactive(input$file, {
     creando_mapas(reac_df())
   })
   
   output$df_aporte_vars = renderDT(
-    df_campos()
-    )
+    atms()$df_campos
+  )
+  
+  output$df_calif_atms = renderDT(
+    atms()$df_calif
+  )
+  
+  output$df_clusters_atms = renderDT(
+    atms()$df_clusters%>%
+      group_by(clusters_kmeans,orden_cluster_kmenas_calif,orden_cluster_kmenas_califgiro)%>%
+      summarise(
+        casos=n(),
+        calificacion_promedio_kmeans=mean(calif)
+        )
+  )
   
   output$my_inputs01 <- renderUI({
     lapply(camposvariables()$campos[1:camposvariables()$vec_nums[1]], function(x){
