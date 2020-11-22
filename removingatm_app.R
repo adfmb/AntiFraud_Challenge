@@ -1,4 +1,11 @@
 library(shinydashboard)
+library(shiny)
+library(leaflet)
+source("utils/creando_mapas.R")
+source("utils/seleccionar_vars.R")
+
+camposllave<-c( "atm","Division","Giro","Estado","Ciudad","CP","Del.Muni","Colonia","Latitud","Longitud","cvemun")
+vars_excluir<-NULL
 ## ui.R ##
 sidebar <- dashboardSidebar(
   sidebarMenu(
@@ -15,7 +22,7 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "pesos_variables",
-            h2("Dashboard tab content"),
+            # h2("Dashboard tab content"),
             uiOutput('my_inputs')
     ),
     
