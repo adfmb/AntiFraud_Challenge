@@ -11,7 +11,7 @@
 
 def_aporte_var<-function(camposvariables,input=input,catalogo_direccion_vars=NULL){
   if(is.null(catalogo_direccion_vars)){
-    catalogo_direccion_vars<-readRDS("data/catalogo_vars_positivas.rds")
+    catalogo_direccion_vars<-readRDS("datasource/catalogo_vars_positivas.rds")
   }
   
   df_campos_direccion<-data_frame(
@@ -24,7 +24,7 @@ def_aporte_var<-function(camposvariables,input=input,catalogo_direccion_vars=NUL
     )
   
   df_campos_pesos<-data_frame()
-  for(campotmp in campos){
+  for(campotmp in df_campos_direccion$variable){
     df_campos_pesos<-df_campos_pesos%>%
       bind_rows(
         data_frame("variable"=campotmp,"peso"=input[[paste0("input_",campotmp)]])
