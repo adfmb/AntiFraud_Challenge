@@ -1,9 +1,9 @@
 calcular_clusters<-function(df_calif,input){
-  set.seed(input$clusters)
+  set.seed(input$numclusters)
   df_clusters<-df_calif%>%
   # df_clusters<-atms$df_calif%>%
     mutate(
-      clusters_kmeans=kmeans(select(.,calif,starts_with("Giro_")),input$clusters)$cluster
+      clusters_kmeans=kmeans(select(.,calif,starts_with("Giro_")),input$numclusters)$cluster
     )%>%
     group_by(Giro,clusters_kmeans)%>%
     mutate(

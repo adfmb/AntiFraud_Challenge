@@ -7,6 +7,7 @@ source("utils/seleccionar_vars.R")
 source("utils/def_aporte_var.R")
 source("utils/df_calif_atms.R")
 source("utils/proceso_atms.R")
+source("utils/proceso_clusters.R")
 par(mar=c(1,1,1,1))
 catalogo_direccion_vars<-readRDS("datasource/catalogo_vars_positivas.rds")
 
@@ -25,10 +26,10 @@ sidebar <- dashboardSidebar(
     p(),
     menuItem("Aporte & Calificación", icon = icon("th"), tabName = "aporte_y_calif_atms"#,badgeLabel = "new", badgeColor = "green"
     ),
-    numericInput('clusters', 'Número de clústers', 3, min = 1, max = 9),
+    numericInput('numclusters', 'Número de clústers', 3, min = 1, max = 9, step = 0.5),
     p(),
     menuItem("Grupos de ATM's", icon = icon("th"), tabName = "df_clusters_atms"),
-    # actionButton("clustering_atms", " ATM's"),
+    # actionButton("clustering_atms", "ATM's"),
     
     
     menuItem("Con Cluster por Distancias", icon = icon("th"), tabName = "leafl_distancia_cajeros"#,badgeLabel = "new", badgeColor = "green"
@@ -106,12 +107,18 @@ server <- function(input, output, session) {
     proceso_atms(reac_df(),camposllave,camposvariables(),input=input,catalogo_direccion_vars=catalogo_direccion_vars)
   })
   
+  
   # df_campos <- eventReactive(input$calificar_atms, {
   #   def_aporte_var(camposvariables(),input,catalogo_direccion_vars=catalogo_direccion_vars)
   # })
   
-  # clusters <- reactive({
-  #   kmeans(selectedData(), input$clusters)
+  clusters <- eventReactive(req(input$calificar_atms, input$numclusters),{
+    proceso_clusters(atms()$df_calif,input)
+  })
+  
+  # observe({
+  #   req(input$calificar_atms, input$numclusters)
+  #   clusters()
   # })
   
   mapas <- eventReactive(input$file, {
@@ -127,7 +134,7 @@ server <- function(input, output, session) {
   )
   
   output$df_clusters_atms = renderDT(
-    atms()$df_clusters%>%
+    clusters()$df_clusters%>%
       group_by(clusters_kmeans,orden_cluster_kmenas_calif,orden_cluster_kmenas_califgiro)%>%
       summarise(
         casos=n(),
