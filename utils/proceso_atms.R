@@ -1,9 +1,9 @@
 source("utils/def_aporte_var.R")
 source("utils/df_calif_atms.R")
 # source("utils/calcular_clusters.R")
-proceso_atms<-function(df,camposllave,camposvariables,input=input,catalogo_direccion_vars=catalogo_direccion_vars){
+proceso_atms<-function(df,camposllave,camposvariables,input=input,catalogo_direccion_vars=catalogo_direccion_vars,df_nas=df_nas){
   
-  df_campos<-def_aporte_var(camposvariables,input=input,catalogo_direccion_vars=catalogo_direccion_vars)
+  df_campos<-def_aporte_var(camposvariables,input=input,catalogo_direccion_vars=catalogo_direccion_vars,df_nas=df_nas)
   
   df_calif<-df_calif_atms(df,df_campos,camposllave)
   
